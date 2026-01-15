@@ -48,7 +48,7 @@ store_knowledge = """
 """
 
 model = genai.GenerativeModel(
-    "gemini-flash-latest",
+    "gemini-1.5-flash",
     system_instruction=f"""
     You are an intelligent KFC Customer Service Manager.
     
