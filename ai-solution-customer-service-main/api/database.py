@@ -1,9 +1,16 @@
 import sqlite3
+import os
+
+# Identify if we are on Vercel or Local
+# On Vercel, we MUST use /tmp/ for SQLite
+if os.environ.get("VERCEL"):
+    DB_PATH = "/tmp/kfc_complaints.db"
+else:
+    DB_PATH = "kfc_complaints.db"
 
 def init_db():
-    conn = sqlite3.connect("kfc_complaints.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    # Create table with NEW columns for escalation and refunds
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS complaints (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,9 +25,8 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Updated function to accept new arguments
 def save_complaint(user_id, message, ai_response, is_escalated=False, refund_issued=False):
-    conn = sqlite3.connect("kfc_complaints.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     sentiment = "Neutral"
@@ -36,12 +42,5 @@ def save_complaint(user_id, message, ai_response, is_escalated=False, refund_iss
         conn.commit()
     except Exception as e:
         print(f"Database Error: {e}")
-        # Fallback: If table is old, just try inserting basic info
-        try:
-             cursor.execute("INSERT INTO complaints (user_id, message, ai_response, sentiment) VALUES (?, ?, ?, ?)",
-                   (user_id, message, ai_response, sentiment))
-             conn.commit()
-        except:
-            pass
-
-    conn.close()
+    finally:
+        conn.close()
